@@ -8,10 +8,7 @@ def suggest(x):
 
 
 def prob(old_x, new_x):
-    if new_x > 0:
-        return math.exp(-new_x + old_x)
-    else:
-        return 0
+    # Самостоятельно
 
 
 def mcmc(init=0):

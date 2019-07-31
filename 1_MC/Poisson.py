@@ -14,12 +14,6 @@ def suggest(k):
 
 def prob(old_k, new_k):
     # Самостоятельно
-    if new_k < 0:
-        return 0
-    if new_k > old_k:
-        return lmbd / new_k
-    else:
-        return old_k / lmbd
 
 
 def mcmc(init=7):
