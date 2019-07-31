@@ -86,16 +86,12 @@ if __name__ == '__main__':
     alphabet = [chr(idx) for idx in range(1072, 1072 + 32)] + ['ё', ' ']
     alphabet_set = set(alphabet)
 
-    # Count letters and their pairs frequency in text corpus
-    # sf, pf = get_freq_by_files(
-    #     alphabet_set, './data/crime_and_punishment.txt'
-    # )
     sf, pf = get_freq_by_files(alphabet_set, './data/corp.txt')
     for sym_1, sym_2 in product(alphabet, alphabet):
         pf[sym_1 + sym_2] += 0
     pf = normalise_dict(pf)
 
-    message_id = 1
+    message_id = 2
     # Read original message for estimations
     original_messages = []
     with open('./data/original_messages.txt', 'r') as message_file:
