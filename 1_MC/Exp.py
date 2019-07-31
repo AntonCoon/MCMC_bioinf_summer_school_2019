@@ -2,6 +2,7 @@ import random
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import expon
 from scipy.stats import norm
 
 
@@ -23,7 +24,7 @@ def mcmc(init=0):
 
 
 if __name__ == '__main__':
-    eps = 1
+    eps = .1
     n_steps = 1500
 
     distr = []
@@ -32,11 +33,8 @@ if __name__ == '__main__':
 
     distr = np.array(distr)
 
-    mu = 0
-    variance = eps
-    sigma = math.sqrt(variance)
-    x = np.linspace(0, 10, 100)
-    plt.plot(x, 2 * norm.pdf(x, mu, sigma), '--')
+    x = np.linspace(expon.ppf(0.1), expon.ppf(0.99), 100)
+    plt.plot(x, expon.pdf(x), '--', label='exponential pdf')
 
     plt.hist(distr, normed=True)
     plt.show()
