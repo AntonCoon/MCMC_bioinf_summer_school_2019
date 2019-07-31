@@ -1,15 +1,15 @@
 import random
-from collections import Counter
 import matplotlib.pyplot as plt
-from scipy.stats.distributions import poisson
 import numpy as np
+from scipy.misc import factorial
+
+
+lmbd = 7.3
+n_steps = 50
 
 
 def suggest(k):
-    if random.random() < 0.5:
-        return k - 1
-    else:
-        return k + 1
+    # Самостоятельно
 
 
 def prob(old_k, new_k):
@@ -18,37 +18,25 @@ def prob(old_k, new_k):
 
 def mcmc(init=7):
     k = init
-    res = []
     for i in range(n_steps):
         new_k = suggest(k)
         if random.random() < prob(k, new_k):
             k = new_k
-        res.append(k)
-    return res
+    return k
 
 
 if __name__ == '__main__':
-    lmbd = 7.3
-    n_steps = 20
 
     distr = []
-    for j in range(1000):
+    for j in range(10000):
         distr.append(mcmc())
 
-    print(', '.join(map(str, distr[-1])))
+    distr = np.array(distr)
 
-    conv = []
-    freq = []
-    for idx in range(n_steps):
-        distr_on_step = [line[idx] for line in distr]
-        # print(distr_on_step)
-        freq = Counter(distr_on_step)
-        norm = sum(freq.values())
-        diff = 0
-        for num in range(0, 20):
-            if num in freq:
-                diff += abs(freq[num] / norm - poisson.pmf(num, lmbd))
-        conv.append(diff)
+    t = np.arange(0, 20, 0.1)
+    d = np.exp(-lmbd) * np.power(lmbd, t) / factorial(t)
 
-    plt.plot(np.array(conv))
+    plt.plot(t, d, '--')
+
+    plt.hist(distr, normed=True)
     plt.show()
