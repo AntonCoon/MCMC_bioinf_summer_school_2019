@@ -17,13 +17,14 @@ def log_like(message, pf):
 def major_freq_decoder(
         message_single_freq: defaultdict,
         corpus_single_freq: defaultdict) -> dict:
+
     code_left, code_right = [], []
     for sym in alphabet:
         code_right.append((sym, message_single_freq[sym]))
         code_left.append((sym, corpus_single_freq[sym]))
     code_left = sorted(code_left, key=lambda pair: pair[1])
     code_right = sorted(code_right, key=lambda pair: pair[1])
-    return {k: v for (k, _), (v, _) in zip(code_left, code_right)}
+    return {k: v for (k, _), (v, _) in zip(code_right, code_left)}
 
 
 def code_message(message, code):
@@ -42,15 +43,8 @@ def suggest(code, alphabet):
 
 def suggest_modified(code, alphabet):
     new_code = code.copy()
-    m = random.randint(2, 17)
-    shaked = random.sample(alphabet, m)
-    perm = numpy.random.permutation(shaked)
-    tuple2 = []
-    for i in range(len(shaked)):
-        tuple2.append(code[perm[i]])
-    tuple2 = tuple(tuple2)
-    for i in range(len(shaked)):
-        code[shaked[i]] = tuple2[i]
+    # Самостоятельно
+    # Поменять больше двух букв
     return new_code
 
 
@@ -67,7 +61,7 @@ def mcmc(init_code, message, paired_freq: defaultdict, alphabet: set, n_steps):
     conv = list()
     code = init_code.copy()
     for step in range(n_steps):
-        new_code = suggest_modified(code, alphabet)
+        new_code = suggest(code, alphabet)
 
         if random.random() < prob(code, new_code, message, paired_freq) ** .1:
             code = new_code
@@ -91,7 +85,7 @@ if __name__ == '__main__':
         pf[sym_1 + sym_2] += 0
     pf = normalise_dict(pf)
 
-    message_id = 2
+    message_id = 0
     # Read original message for estimations
     original_messages = []
     with open('./data/original_messages.txt', 'r') as message_file:
@@ -100,19 +94,22 @@ if __name__ == '__main__':
     original_message = original_messages[message_id]
 
     # Read encoded message
-    encoded_messages = []
-    with open('./data/encoded_messages.txt', 'r') as encoded_message_file:
-        for line in encoded_message_file:
-            encoded_messages += [line.strip()]
-    encoded_message = encoded_messages[message_id]
+    # encoded_messages = []
+    # with open('./data/encoded_messages.txt', 'r') as encoded_message_file:
+    #     for line in encoded_message_file:
+    #         encoded_messages += [line.strip()]
+    # encoded_message = encoded_messages[message_id]
+    encoded_message = 'мйцкфёшкшцйбёвзаьсшазшйрайцьрцчшаьшкш зтфймщшаьшкйшфрйтймщшрь щш тёеёшбзшлжвёш йийлаёшцрётйошьшмщитйошфйвэзлаьызшярйшщмззрш тьрфйтчрнцчшмйвйийошайшазшфьиьршфшрймшащбижшцйхтёаччшцфйсшктёцйрщшфшвслймшфйутёцрз'
 
     # Count letters and their pairs frequency in encoded message
     sfm, pfm = get_freq(encoded_message)
 
+    print(sf)
+    print(sfm)
     # Simple decoding by frequency
     simple_code = major_freq_decoder(sfm, sf)
     print(
-        'Message decoded by frequency:\n{}'.format(
+        'Message decoded by single frequencies:\n{}'.format(
             code_message(encoded_message, simple_code)
         )
     )
@@ -123,7 +120,7 @@ if __name__ == '__main__':
         encoded_message,
         pf,
         alphabet_set,
-        n_steps=100000
+        n_steps=50000
     )
 
     reconstructed_message = code_message(encoded_message, final_code)
