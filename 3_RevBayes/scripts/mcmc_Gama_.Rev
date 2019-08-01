@@ -1,0 +1,84 @@
+
+# RevBayes Example: Bayesian inference of phylogeny using a GTR+Gamma+Inv
+#                   substitution model on a single gene.
+
+### Read in sequence data for the gene
+data = readDiscreteCharacterData("data/taxa.nex")
+
+# Get some useful variables from the data.
+num_taxa <- data.ntaxa()
+num_branches <- 2 * num_taxa - 3
+taxa <- data.taxa()
+
+moves    = VectorMoves()
+monitors = VectorMonitors()
+
+# Substitution Model #
+
+# create a deterministic variable for the rate matrix, GTR
+pi_prior <- v(1,1,1,1)
+pi ~ dnDirichlet(pi_prior)
+
+moves.append( mvBetaSimplex(pi, weight=2) )
+moves.append( mvDirichletSimplex(pi, weight=1) )
+
+er_prior <- v(1,1,1,1,1,1)
+er ~ dnDirichlet( er_prior )
+
+moves.append(mvBetaSimplex(er, weight=3))
+moves.append(mvDirichletSimplex(er, weight=1))
+
+Q := fnGTR(er,pi)
+
+alpha ~ dnUniform(0, 1E8)
+moves.append(mvScale(alpha, weight=1))
+
+gamma_rates := fnDiscretizeGamma( alpha, alpha, 4)
+
+# Tree model #
+
+out_group = clade("1")
+# Prior distribution on the tree topology
+
+topology ~ dnUniformTopology(taxa, outgroup=out_group)
+moves.append( mvNNI(topology, weight=num_taxa/2.0) )
+moves.append( mvSPR(topology, weight=num_taxa/10.0) )
+
+# Branch length prior
+for (i in 1:num_branches) {
+    bl[i] ~ dnExponential(10.0)
+    moves.append( mvScale(bl[i]) )
+}
+
+TL := sum(bl)
+
+psi := treeAssembly(topology, bl)
+
+# PhyloCTMC Model #
+# the sequence evolution model
+seq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=gamma_rates, type="DNA")
+
+# attach the data
+seq.clamp(data)
+
+# Analysis #
+
+mymodel = model(psi)
+
+# add monitors
+monitors.append( mnScreen(TL, printgen=200) )
+monitors.append( mnFile(psi, filename="output/gama_tree.trees", printgen=10) )
+monitors.append( mnModel(filename="output/gama_tree.log", printgen=10) )
+
+# run the analysis
+mymcmc = mcmc(mymodel, moves, monitors, nruns=2, combine="mixed")
+mymcmc.run(generations=2000, tuningInterval=200)
+
+mymcmc.operatorSummary()
+
+# output
+treetrace = readTreeTrace("output/gama_tree.trees", treetype="non-clock", outgroup=out_group)
+map_tree = mapTree(treetrace, "output/gama_map_tree.tree")
+
+q()
+
