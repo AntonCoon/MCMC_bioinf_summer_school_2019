@@ -47,7 +47,6 @@ if __name__ == '__main__':
         for v in tree[u]:
             branch_len = np.random.poisson(3, 1)[0] + 1
             branch_lens_dict[(u, v)] = branch_len
-            branch_lens_dict[(u, v)] = branch_len
 
     # Пусть у нас будет какая нибудь простая матрица замен
     substitution_matrix = np.array(
